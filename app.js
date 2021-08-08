@@ -4,6 +4,7 @@ const colors = document.getElementsByClassName("jsColor");
 const range = document.getElementById("jsRange");
 const mode = document.getElementById("jsMode");
 const saveBtn = document.getElementById("jsSave");
+const circleBtn = document.getElementById("jsCircle");
 
 const INITINAL_COLOR = "#2c2c2c";
 const CANVAS_SIZE = 700;
@@ -19,6 +20,9 @@ ctx.lineWidth = 2.5;
 
 let painting = false;
 let filling = false;
+let circle = false;
+let circleX;
+let circleY;
 
 function stopPainting() {
 	painting = false;
@@ -31,12 +35,14 @@ function startPainting() {
 function onMouseMove(event) {
 	const x = event.offsetX;
 	const y = event.offsetY;
-	if (!painting) {
-		ctx.beginPath();
-		ctx.moveTo(x, y);
-	} else {
-		ctx.lineTo(x, y);
-		ctx.stroke();
+	if (!filling && !circle) {
+		if (!painting) {
+			ctx.beginPath();
+			ctx.moveTo(x, y);
+		} else {
+			ctx.lineTo(x, y);
+			ctx.stroke();
+		}
 	}
 }
 
@@ -79,6 +85,34 @@ function handleSaveClick() {
 	link.click();
 }
 
+function handleCircleClick() {
+	if (circle === true) {
+		circle = false;
+		circleBtn.innerText = "Circle";
+	} else {
+		circle = true;
+		circleBtn.innerText = "Paint";
+	}
+}
+
+function circleInit(event) {
+	if (circle) {
+		ctx.beginPath();
+		circleX = event.offsetX;
+		circleY = event.offsetY;
+	}
+}
+
+function circlePainting(event) {
+	if (circle) {	
+		const x = circleX - event.offsetX;
+		const y = circleY - event.offsetY;
+		const result = Math.sqrt(Math.abs(x * x) + Math.abs(y * y));
+		ctx.arc(circleX, circleY, result, 0, 2 * Math.PI);
+		ctx.stroke();
+	}
+}
+
 if (canvas) {
 	canvas.addEventListener("mousemove", onMouseMove);
 	canvas.addEventListener("mousedown", startPainting);
@@ -86,6 +120,8 @@ if (canvas) {
 	canvas.addEventListener("mouseleave", stopPainting);
 	canvas.addEventListener("click", handleCanvasClick);
 	canvas.addEventListener("contextmenu", handleCM);
+	canvas.addEventListener("mousedown", circleInit);
+	canvas.addEventListener("mouseup", circlePainting);
 }
 
 Array.from(colors).forEach(color => color.addEventListener("click", handleColorClick));
@@ -100,4 +136,8 @@ if (mode) {
 
 if (saveBtn) {
 	saveBtn.addEventListener("click", handleSaveClick);
+}
+
+if (circleBtn) {
+	circleBtn.addEventListener("click", handleCircleClick);
 }
